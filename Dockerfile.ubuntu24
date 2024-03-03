@@ -1,0 +1,24 @@
+FROM ubuntu:24.04 as build
+RUN apt-get -y update
+RUN apt-get install -y zip bison python3-pip build-essential cmake flex git libedit-dev  \
+zlib1g-dev libelf-dev libfl-dev bpfcc-tools
+
+RUN apt-get install -y libllvm18 libpolly-18-dev  \
+llvm-18-dev libclang-18-dev clang-format-18 libelf-dev bison flex \
+libfl-dev libedit-dev zlib1g-dev git python3 python3-netaddr python3-pyroute2 python3-setuptools python3-pip \
+luajit  libluajit-5.1-dev arping inetutils-ping iperf netperf \
+ethtool devscripts dh-python zip 
+
+RUN git clone https://github.com/iovisor/bcc.git
+RUN mkdir bcc/build
+WORKDIR  bcc/build
+RUN cmake ..
+RUN make
+RUN  make install
+RUN cmake -DPYTHON_CMD=python3 .. # build python3 binding
+
+WORKDIR /usr/sbin/
+
+
+COPY main.py .
+CMD [ "python3", "./main.py" ]
